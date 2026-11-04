@@ -1,0 +1,198 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,620&family=Great+Vibes&family=Manrope:wght@400;500;600;700&display=swap");
+
+.cc-root {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: hidden;
+  background:
+    radial-gradient(900px 420px at 50% -10%, rgba(255, 248, 236, 0.9), transparent 70%),
+    #f7f1e8;
+  color: #3a2a22;
+  font-family: Manrope, Inter, system-ui, sans-serif;
+}
+
+.cc-root .display {
+  font-family: Fraunces, "Cormorant Garamond", serif;
+  font-optical-sizing: auto;
+}
+
+.cc-stack {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.pac-container {
+  z-index: 80;
+  margin-top: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(92, 58, 42, 0.15);
+  border-radius: 16px;
+  font-family: Manrope, Inter, system-ui, sans-serif;
+}
+
+.cc-grain {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.cc-shot {
+  position: relative;
+  display: block;
+  isolation: isolate;
+}
+
+.cc-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.cc-shot::after {
+  content: "";
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 2%;
+  height: 12%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(58, 32, 18, 0.22) 0%, rgba(58, 32, 18, 0.08) 46%, transparent 72%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cc-clock:hover img {
+    animation: cc-clock 16s linear infinite;
+  }
+}
+
+@keyframes cc-clock {
+  to { transform: rotate(360deg); }
+}
+
+.cc-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  overflow: hidden;
+  background: #f7f1e8;
+}
+
+.cc-intro-chip {
+  position: absolute;
+  animation-name: cc-rain;
+  animation-timing-function: cubic-bezier(0.22, 0.7, 0.28, 1);
+  animation-fill-mode: both;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.cc-intro-brand {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  z-index: 40;
+  display: flex;
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  color: #5c3a2a;
+  pointer-events: none;
+}
+
+.cc-intro-logo {
+  display: block;
+  width: min(78vw, 22rem);
+  height: auto;
+  animation: cc-logo-on-pile 0.7s 1.8s ease forwards;
+}
+
+.cc-intro-skip {
+  position: absolute;
+  right: 20px;
+  bottom: 24px;
+  z-index: 50;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a6848;
+  animation: cc-brand-on-pile 0.7s 1.8s ease forwards;
+}
+
+@keyframes cc-rain {
+  0% { transform: translate(var(--drift, 0px), -120vh) rotate(-18deg); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate(0, 0) rotate(var(--spin, 8deg)); opacity: 1; }
+}
+
+@keyframes cc-brand-on-pile {
+  to {
+    color: #f6eee3;
+    text-shadow: 0 1px 2px rgba(40, 22, 12, 0.55), 0 6px 22px rgba(40, 22, 12, 0.5);
+  }
+}
+
+@keyframes cc-logo-on-pile {
+  to {
+    filter:
+      drop-shadow(0 0 1px #f6eee3)
+      drop-shadow(0 0 10px rgba(246, 238, 227, 0.85))
+      drop-shadow(0 4px 16px rgba(40, 22, 12, 0.45));
+  }
+}
+
+.cc-fall,
+.cc-drip {
+  position: absolute;
+  pointer-events: none;
+}
+
+.cc-fall {
+  top: -8%;
+  border-radius: 40% 60% 50% 50%;
+  animation-name: cc-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.cc-drip {
+  top: -30%;
+  border-radius: 40px 40px 18px 18px;
+  transform-origin: top center;
+  animation-name: cc-drip;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+
+@keyframes cc-fall {
+  0% { transform: translateY(-10%) rotate(0deg); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translateY(118%) rotate(180deg); opacity: 0.9; }
+}
+
+@keyframes cc-drip {
+  0% { transform: scaleY(0.15); opacity: 0; }
+  18% { opacity: 0.95; }
+  100% { transform: scaleY(1.35) translateY(8%); opacity: 0.15; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-fall,
+  .cc-drip,
+  .cc-clock:hover img,
+  .cc-intro-chip,
+  .cc-intro-logo {
+    animation: none;
+  }
+
+  .cc-intro-chip {
+    display: none;
+  }
+}

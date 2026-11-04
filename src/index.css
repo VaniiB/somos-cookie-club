@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f7f1e8;
+  color: #3a2a22;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
