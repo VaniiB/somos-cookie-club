@@ -35,7 +35,7 @@ export type Store = {
   changes: Change[]
 }
 
-export const CATALOG_VERSION = 9
+export const CATALOG_VERSION = 11
 
 export function sampleOrders(): StoredOrder[] {
   const ago = (days: number, hour: number) => {
@@ -55,7 +55,7 @@ export function sampleOrders(): StoredOrder[] {
       line: 'clasica',
       bake: 'horneada',
       items: [
-        item('vainilla-chips', 'Clásica con chips', 3),
+        item('vainilla-chips', 'Clásica con Chips', 3),
         item('doble-chocolate', 'Doble chocolate', 2),
         item('red-velvet', 'Red velvet', 1),
       ],
@@ -114,7 +114,7 @@ export function sampleOrders(): StoredOrder[] {
       line: 'clasica',
       bake: 'horneada',
       items: [
-        item('vainilla-chips', 'Clásica con chips', 6),
+        item('vainilla-chips', 'Clásica con Chips', 6),
         item('doble-chocolate', 'Doble chocolate', 4),
         item('red-velvet', 'Red velvet', 2),
       ],
@@ -135,7 +135,7 @@ export function sampleOrders(): StoredOrder[] {
       bake: 'congelada',
       items: [
         item('red-velvet', 'Red velvet', 3),
-        item('vainilla-chips', 'Clásica con chips', 3),
+        item('vainilla-chips', 'Clásica con Chips', 3),
       ],
       total: 18800,
       mode: 'retiro',

@@ -30,7 +30,7 @@ export const cookiePrices: Record<CookieLine, Record<PackSize, number>> = {
 export const cookies: Cookie[] = [
   {
     slug: 'vainilla-chips',
-    name: 'Clásica con Chip',
+    name: 'Clásica con Chips',
     tagline: 'Vainilla y chips de chocolate',
     line: 'clasica',
     grams: 80,
@@ -43,7 +43,7 @@ export const cookies: Cookie[] = [
   },
   {
     slug: 'doble-chocolate',
-    name: 'Chocolate con Chip',
+    name: 'Chocolate con Chips',
     tagline: 'Masa de chocolate y chips',
     line: 'clasica',
     grams: 80,
@@ -103,7 +103,7 @@ export const cookies: Cookie[] = [
     effectLabel: 'Chorrea frosting',
     blurb: 'Miga roja, trocitos de chocolate blanco y frosting de queso crema en el centro. Sale horneada; si la pedís congelada, 15 minutos a 180°.',
     inside: 'Masa red velvet rellena de frosting de queso crema. 120 g.',
-    image: '/cookies/red-velvet-frosting.png?v=2',
+    image: '/cookies/red-velvet-frosting.png?v=3',
     keywords: ['frosting', 'queso', 'cream', 'red velvet'],
   },
 ]
