@@ -1,14 +1,20 @@
-const CACHE = 'scc-shell-v1'
+const CACHE = 'scc-shell-v2'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(['/', '/index.html', '/cookies/logo.png'])).then(() => self.skipWaiting()),
+    caches
+      .open(CACHE)
+      .then((cache) => cache.addAll(['/index.html', '/cookies/logo.png', '/ping.txt']))
+      .then(() => self.skipWaiting()),
   )
 })
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)))).then(() => self.clients.claim()),
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim()),
   )
 })
 
@@ -18,6 +24,10 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
   if (url.pathname.startsWith('/api/')) return
+  if (url.searchParams.has('cc-ping')) {
+    event.respondWith(fetch(request))
+    return
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -27,21 +37,20 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((cache) => cache.put('/index.html', copy))
           return response
         })
-        .catch(() => caches.match('/index.html')),
+        .catch(() => caches.match('/index.html').then((hit) => hit || caches.match('/ping.txt'))),
     )
     return
   }
 
   event.respondWith(
-    caches.match(request).then((hit) => {
-      if (hit) return hit
-      return fetch(request).then((response) => {
+    fetch(request)
+      .then((response) => {
         if (response.ok) {
           const copy = response.clone()
           caches.open(CACHE).then((cache) => cache.put(request, copy))
         }
         return response
       })
-    }),
+      .catch(() => caches.match(request).then((hit) => hit || caches.match('/index.html'))),
   )
 })

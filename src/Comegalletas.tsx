@@ -74,24 +74,70 @@ export function LostPage({
   )
 }
 
-export function OfflineGate({ homeTo, children }: { homeTo: string; children: ReactNode }) {
-  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine))
+function useOnline() {
+  const [online, setOnline] = useState(true)
 
   useEffect(() => {
-    const sync = () => setOnline(navigator.onLine)
-    window.addEventListener('online', sync)
-    window.addEventListener('offline', sync)
+    let live = true
+    let timer = 0
+
+    async function probe() {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        if (live) setOnline(false)
+        return
+      }
+      try {
+        const ctrl = new AbortController()
+        const kill = window.setTimeout(() => ctrl.abort(), 4000)
+        const res = await fetch(`/ping.txt?cc-ping=${Date.now()}`, {
+          cache: 'no-store',
+          signal: ctrl.signal,
+        })
+        window.clearTimeout(kill)
+        if (live) setOnline(res.ok)
+      } catch {
+        if (live) setOnline(false)
+      }
+    }
+
+    function goOffline() {
+      if (live) setOnline(false)
+    }
+
+    function goOnline() {
+      void probe()
+    }
+
+    window.addEventListener('offline', goOffline)
+    window.addEventListener('online', goOnline)
+    window.addEventListener('focus', goOnline)
+    document.addEventListener('visibilitychange', goOnline)
+    void probe()
+    timer = window.setInterval(() => {
+      void probe()
+    }, 2000)
+
     return () => {
-      window.removeEventListener('online', sync)
-      window.removeEventListener('offline', sync)
+      live = false
+      window.clearInterval(timer)
+      window.removeEventListener('offline', goOffline)
+      window.removeEventListener('online', goOnline)
+      window.removeEventListener('focus', goOnline)
+      document.removeEventListener('visibilitychange', goOnline)
     }
   }, [])
+
+  return online
+}
+
+export function OfflineGate({ homeTo, children }: { homeTo: string; children: ReactNode }) {
+  const online = useOnline()
 
   return (
     <>
       {children}
       {!online && (
-        <div className="fixed inset-0 z-[90] overflow-auto bg-[#f7f1e8]">
+        <div className="fixed inset-0 z-[200] overflow-auto bg-[#f7f1e8]">
           <LostPage homeTo={homeTo} reason="offline" />
         </div>
       )}
