@@ -4,6 +4,7 @@ import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } fr
 import { AddressField, isFreeDelivery, type PlacePoint } from './AddressField'
 import { AdminPanel } from './AdminPanel'
 import { CatalogProvider, useCatalog } from './catalog'
+import { LostPage, OfflineGate } from './Comegalletas'
 import { ccApi } from './api'
 import {
   INSTAGRAM,
@@ -167,6 +168,7 @@ function Club() {
 
   return (
     <OrderContext.Provider value={api}>
+      <OfflineGate homeTo="/">
       <div className="cc-root">
         <div className="cc-grain" aria-hidden />
         <div className="relative z-10 flex min-h-dvh w-full min-w-0 flex-col [&>*]:min-w-0 [&>*]:w-full">
@@ -205,7 +207,7 @@ function Club() {
                 <Route path="panel" element={<AdminPanel />} />
                 <Route path="hornear" element={<Navigate to="/" replace />} />
                 <Route path="entregas" element={<Navigate to="/" replace />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<LostPage homeTo="/" />} />
               </Routes>
             </RouteGuard>
           </div>
@@ -228,6 +230,7 @@ function Club() {
           </footer>
         </div>
       </div>
+      </OfflineGate>
     </OrderContext.Provider>
   )
 }
