@@ -32,11 +32,20 @@ async function compressPhoto(file: File) {
     bitmap.close()
     throw new Error('No se pudo leer la foto')
   }
-  ctx.fillStyle = '#f7f1e8'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.84))
+  const keepAlpha = file.type === 'image/png' || file.type === 'image/webp'
+  const blob = await new Promise<Blob | null>((resolve) => {
+    if (keepAlpha) {
+      canvas.toBlob((webp) => {
+        if (webp) resolve(webp)
+        else canvas.toBlob(resolve, 'image/png')
+      }, 'image/webp', 0.92)
+      return
+    }
+    canvas.toBlob(resolve, 'image/jpeg', 0.84)
+  })
   if (!blob) throw new Error('No se pudo leer la foto')
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
