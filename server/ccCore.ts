@@ -239,9 +239,44 @@ export function samePassword(input: string, password: string) {
 
 export type CcResult = { status: number; json: unknown }
 
+type CcIo = {
+  load: () => Store | Promise<Store>
+  save: (store: Store) => void | Promise<void>
+  savePhoto?: (id: string, bytes: Uint8Array, contentType: string) => Promise<string>
+  secret: string
+  password: string
+}
+
+const MAX_PHOTO_BYTES = 1_800_000
+
+async function storePhoto(
+  dataUrl: string,
+  savePhoto: NonNullable<CcIo['savePhoto']>,
+): Promise<{ ok: true; url: string } | { ok: false; status: number; error: string }> {
+  const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/)
+  if (!match) return { ok: false, status: 400, error: 'La foto no se pudo leer' }
+  let bytes: Buffer
+  try {
+    bytes = Buffer.from(match[2], 'base64')
+  } catch {
+    return { ok: false, status: 400, error: 'La foto no se pudo leer' }
+  }
+  if (!bytes.length) return { ok: false, status: 400, error: 'La foto no se pudo leer' }
+  if (bytes.length > MAX_PHOTO_BYTES) {
+    return { ok: false, status: 413, error: 'La foto pesa demasiado. Probá un jpg más chico.' }
+  }
+  const id = crypto.randomBytes(8).toString('hex')
+  try {
+    const url = await savePhoto(id, bytes, match[1])
+    return { ok: true, url }
+  } catch {
+    return { ok: false, status: 503, error: 'No se pueden guardar fotos ahora. Probá de nuevo.' }
+  }
+}
+
 export async function handleCc(
   req: { method: string; path: string; authorization?: string; body: unknown },
-  io: { load: () => Store | Promise<Store>; save: (store: Store) => void | Promise<void>; secret: string; password: string },
+  io: CcIo,
 ): Promise<CcResult> {
   const url = req.path.split('?')[0]
   const auth = tokenOk(req.authorization, io.secret)
@@ -266,11 +301,21 @@ export async function handleCc(
     if (!body.cookies?.length || !body.prices?.clasica || !body.prices?.rellena) {
       return { status: 400, json: { error: 'Catálogo incompleto' } }
     }
-    const next = { ...current, cookies: body.cookies, prices: body.prices, catalogVersion: CATALOG_VERSION }
+    const cookies = [...body.cookies]
+    if (io.savePhoto) {
+      for (let i = 0; i < cookies.length; i += 1) {
+        const cookie = cookies[i]
+        if (!cookie?.image?.startsWith('data:')) continue
+        const stored = await storePhoto(cookie.image, io.savePhoto)
+        if (!stored.ok) return { status: stored.status, json: { error: stored.error } }
+        cookies[i] = { ...cookie, image: stored.url }
+      }
+    }
+    const next = { ...current, cookies, prices: body.prices, catalogVersion: CATALOG_VERSION }
     if (JSON.stringify(current.prices) !== JSON.stringify(body.prices)) {
       remember(next, 'precios', 'Actualizó los precios de los packs')
     }
-    if (JSON.stringify(current.cookies) !== JSON.stringify(body.cookies)) {
+    if (JSON.stringify(current.cookies) !== JSON.stringify(cookies)) {
       remember(next, 'galletas', 'Modificó galletas, fotos o descripciones')
     }
     await io.save(next)
@@ -279,10 +324,11 @@ export async function handleCc(
 
   if (req.method === 'POST' && url === '/api/cc/upload') {
     if (!auth) return { status: 401, json: { error: 'Entrá al panel' } }
+    if (!io.savePhoto) return { status: 503, json: { error: 'No se pueden guardar fotos ahora. Probá de nuevo.' } }
     const body = (req.body ?? {}) as { dataUrl?: string }
-    const match = String(body.dataUrl ?? '').match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/)
-    if (!match) return { status: 400, json: { error: 'La foto no se pudo leer' } }
-    return { status: 200, json: { url: body.dataUrl } }
+    const stored = await storePhoto(String(body.dataUrl ?? ''), io.savePhoto)
+    if (!stored.ok) return { status: stored.status, json: { error: stored.error } }
+    return { status: 200, json: { url: stored.url } }
   }
 
   if (req.method === 'POST' && url === '/api/cc/orders') {

@@ -16,6 +16,9 @@ export async function ccApi<T>(path: string, options: RequestInit = {}): Promise
   if (token) headers.set('Authorization', `Bearer ${token}`)
   const response = await fetch(path, { ...options, headers })
   const data = (await response.json().catch(() => ({}))) as T & { error?: string }
-  if (!response.ok) throw new Error(data.error || 'No se pudo completar')
+  if (!response.ok) {
+    if (response.status === 413) throw new Error('La foto pesa demasiado. Probá un jpg más chico.')
+    throw new Error(data.error || 'No se pudo completar')
+  }
   return data
 }

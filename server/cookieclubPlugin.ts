@@ -60,6 +60,14 @@ export function cookieClubApi(): Plugin {
       fs.writeFileSync(dataFile, JSON.stringify(store, null, 2))
     }
 
+    async function savePhoto(id: string, bytes: Uint8Array, contentType: string) {
+      const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg'
+      const uploadDir = path.join(root, 'public', 'cookies', 'uploads')
+      fs.mkdirSync(uploadDir, { recursive: true })
+      fs.writeFileSync(path.join(uploadDir, `${id}.${ext}`), bytes)
+      return `/cookies/uploads/${id}.${ext}`
+    }
+
     return (req: IncomingMessage, res: ServerResponse, next: () => void) => {
       const url = (req.url ?? '').split('?')[0]
       if (!url.startsWith('/api/cc')) {
@@ -77,7 +85,7 @@ export function cookieClubApi(): Plugin {
               authorization: req.headers.authorization,
               body,
             },
-            { load, save, secret, password },
+            { load, save, savePhoto, secret, password },
           )
           send(res, result.status, result.json)
         } catch {

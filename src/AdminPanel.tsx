@@ -20,6 +20,32 @@ function cookieColor(slug: string, index: number) {
   return COOKIE_COLORS[slug] ?? FALLBACK_COLORS[index % FALLBACK_COLORS.length]
 }
 
+async function compressPhoto(file: File) {
+  const bitmap = await createImageBitmap(file)
+  const max = 1400
+  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    bitmap.close()
+    throw new Error('No se pudo leer la foto')
+  }
+  ctx.fillStyle = '#f7f1e8'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  bitmap.close()
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.84))
+  if (!blob) throw new Error('No se pudo leer la foto')
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(new Error('No se pudo leer la foto'))
+    reader.readAsDataURL(blob)
+  })
+}
+
 type SaleSlice = { slug: string; name: string; unidades: number; color: string }
 
 function sliceLuma(color: string) {
@@ -453,12 +479,7 @@ function CookieForm({
   }
 
   async function onFile(file: File) {
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(String(reader.result))
-      reader.onerror = () => reject(new Error('imagen'))
-      reader.readAsDataURL(file)
-    })
+    const dataUrl = await compressPhoto(file)
     const uploaded = await ccApi<{ url: string }>('/api/cc/upload', {
       method: 'POST',
       body: JSON.stringify({ dataUrl }),
